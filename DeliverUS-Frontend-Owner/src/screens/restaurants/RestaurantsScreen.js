@@ -9,6 +9,8 @@ import TextRegular from '../../components/TextRegular'
 import * as GlobalStyles from '../../styles/GlobalStyles'
 import restaurantLogo from '../../../assets/restaurantLogo.jpeg'
 
+import AuthorizationContext from '../../context/AuthorizationContext'
+import { showMessage } from 'react-native-flash-message'
 
 export default function RestaurantsScreen ({ navigation }) {
   const [restaurants, setRestaurants] = useState([])
@@ -48,6 +50,28 @@ export default function RestaurantsScreen ({ navigation }) {
     />
   )
 }
+
+const { loggedInUser } = useContext(AuthorizationContext)
+useEffect(() => {
+  async function fetchRestaurants () { // Addresses problem 1
+    try {
+      const fetchedRestaurants = await getAll()
+      setRestaurants(fetchedRestaurants)
+    } catch (error) { // Addresses problem 3
+      showMessage({
+        message: `There was an error while retrieving restaurants. ${error} `,
+        type: 'error',
+        style: GlobalStyles.flashStyle,
+        titleStyle: GlobalStyles.flashTextStyle
+      })
+    }
+  }
+  if (loggedInUser) { // Addresses problem 2
+    fetchRestaurants()
+  } else {
+    setRestaurants(null)
+  }
+}, [loggedInUser]) // Addresses problem 2
 
 const styles = StyleSheet.create({
   container: {
